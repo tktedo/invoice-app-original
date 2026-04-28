@@ -1,0 +1,47 @@
+services:
+
+  # コンテナ1: データベース
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWPRD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - invoice-net
+  
+  # コンテナ2: バックエンド
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      - db
+    networks:
+      - invoice-net
+  
+  # コンテナ3: フロントエンド
+  # frontend:
+  #  build: ./frontend
+  #  ports:
+  #    - "3000:3000"
+  #  environment:
+  #    NEXT_PUBLIC_API_URL: http://backend:8000
+  #  depends_on:
+  #    - backend
+  #  networks:
+  #    - invoice-net
+
+# ネットワーク定義
+networks:
+    invoice-net:
+      driver: bridge
+      
+# ボリューム定義
+volumes:
+  postgres_data:
+    driver: local
